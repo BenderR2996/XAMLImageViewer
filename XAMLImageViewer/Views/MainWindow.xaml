@@ -1,0 +1,136 @@
+﻿<Window x:Class="XAMLImageViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XAMLImageViewer"
+        xmlns:c="clr-namespace:XAMLImageViewer.Views"
+        xmlns:vm="clr-namespace:XAMLImageViewer.ViewModels"
+       
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        mc:Ignorable="d"
+        DataContext="{DynamicResource ViewModel}"
+        WindowStartupLocation="CenterScreen"
+        Title="XAML Image Viewer" 
+        MinHeight="450" MinWidth="800"
+        Height="450" Width="800">
+    <Window.Resources>
+        <vm:MainWindowViewModel x:Key="ViewModel"/>
+        <c:XAMLImageContentToUIElementConverter x:Key="XamlImageToViewBox"/>
+        <c:StringToUIElementConverter x:Key="StringToUIElement"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="200*" MinWidth="200" MaxWidth="350"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Border Grid.ColumnSpan="3" Grid.Row="0" BorderBrush="Black" BorderThickness="1">
+            <Grid Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                </Grid.ColumnDefinitions>
+                <Button  Grid.Column="1" HorizontalAlignment="Left" Width="30" Content="..." Command="{Binding OpenFolder}"   />
+                <TextBlock Grid.Row="0" Padding="5" Text="{Binding SelectedFolder}" FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                <ProgressBar 
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"  
+                         VerticalAlignment="Stretch" 
+                         Background="{x:Null}" 
+                         Name="progressBar" 
+                         Minimum="0" 
+                         Maximum="100"
+                          Value="{Binding LoadingProgress}"     
+                   />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Background="{Binding Theme}">
+            <Viewbox 
+                Height="{Binding ElementName=sliderScale, Path=Value}" 
+                Width="{Binding ElementName=sliderScale, Path=Value}">
+                <ContentControl 
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Content ="{Binding ElementName=imagesList, Path=SelectedItem.Tag, Converter={StaticResource StringToUIElement}}"/>
+            </Viewbox>
+        </Grid>
+
+        <GridSplitter Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" ResizeDirection="Columns" Cursor="SizeWE" />
+
+        <Grid  Grid.Column="2" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <ListBox Grid.Row="0"
+                     x:Name="imagesList"
+                     SelectionMode="Extended"
+                     ItemsSource="{Binding ImagesList, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource XamlImageToViewBox}}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectedImageChanged}"
+                                           CommandParameter="{Binding ElementName=imagesList, Path=SelectedItem.Tag}"  
+                                           />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ListBox>
+        </Grid>
+
+        <Grid HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="35"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Slider 
+                x:Name="sliderScale"
+                VerticalAlignment="Center" 
+                Margin="20,0"                    
+                Minimum="10" 
+                Value="200"
+                
+                Maximum="{Binding ElementName=imagesList, Path=ActualHeight}"
+                Grid.Column="2" Height="18" SmallChange="1" 
+                />
+
+
+
+            <Button Command="{Binding ChangeTheme}" Grid.Column="1" Margin="2">          
+                <Viewbox Width="16" Height="16">
+                    <Rectangle Width="16" Height="16">
+                        <Rectangle.Fill>
+                            <DrawingBrush>
+                                <DrawingBrush.Drawing>
+                                    <DrawingGroup>
+                                        <DrawingGroup.Children>
+                                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.582,0 0,3.582 0,8 0,12.418 3.582,16 8,16 12.418,16 16,12.418 16,8 16,3.582 12.418,0 8,0" />
+                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M8,14L8,2C11.313,2 14,4.687 14,8 14,11.313 11.313,14 8,14 M8,1C4.134,1 1,4.134 1,8 1,11.866 4.134,15 8,15 11.866,15 15,11.866 15,8 15,4.134 11.866,1 8,1" />
+                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
+                                        </DrawingGroup.Children>
+                                    </DrawingGroup>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                </Viewbox>
+            </Button>
+        </Grid>
+
+        <Button Content="Копировать ресурс" 
+                Margin="2,5" 
+                Grid.Row="2" Grid.Column="2" 
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" 
+                Command="{Binding CopyResource}"
+                CommandParameter="{Binding ElementName=imagesList, Path=SelectedItems}"
+                />
+    </Grid>
+</Window>
