@@ -5,22 +5,45 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Markup;
 
 namespace XAMLImageViewer.Models
 {
     public class XamlImageProcessor
     {
-        public string GetXamlElement(FileInfo fi)
+        public static ListBoxItem GetUIElement(XamlFileInfo xf)
         {
-            var text = File.ReadAllText(fi.FullName);
+            if (xf.IsVisible)
+            {
+                Viewbox vb = new Viewbox() { Height = 16, Width = 16 };
+                var ui = ReadImage(xf.Content);
+                vb.Child = ui;
+
+                StackPanel sp = new StackPanel() { Orientation = System.Windows.Controls.Orientation.Horizontal };
+                sp.Children.Add(vb);
+                sp.Children.Add(new TextBlock() { Text = xf.Name, Margin = new Thickness(5, 0, 0, 0) });
+
+                var item = new ListBoxItem() { Content = sp, Tag = xf };
+                return item;
+            }
+            return null;
+        }
+
+
+        public string GetXamlElement(XamlFileInfo xf)
+        {
+            var text = xf.Content;
             text = System.Text.RegularExpressions.Regex.Replace(text, @"(?s)<!--.*?-->", "").Replace("\r\n\r\n", "");
-            text = text.Replace("xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"", $"x:Key=\"{fi.Name.Replace(fi.Extension, "")}\"");
+            text = text.Replace("xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"", $"x:Key=\"{xf.Name}\"");
             return text;
         }
-        public string GetResourceDictionary(List<FileInfo> files, string @namespace = "MyResourceDictionary")
-            => GetResourceDictionary(files.Select(x => GetXamlElement(x)).ToList(), @namespace);
-        private string GetResourceDictionary(List<string> images, string @namespace)
+
+
+
+        public string GetResourceDictionary(IEnumerable<XamlFileInfo> files, string @namespace = "MyResourceDictionary")
+            => GetResourceDictionary(files.Select(x => GetXamlElement(x)), @namespace);
+        private string GetResourceDictionary(IEnumerable<string> images, string @namespace)
         {
             return
             $@"<ResourceDictionary xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
@@ -31,23 +54,11 @@ namespace XAMLImageViewer.Models
             @"
 </ResourceDictionary>";
         }
+
         public static UIElement ReadImage(string content)
         {
-            using (var reader = new MemoryStream(Encoding.UTF8.GetBytes(content)))
-            {
-                var ui = XamlReader.Load(reader) as FrameworkElement;
-                ui.Tag = content;
-                return ui;
-            }
-        }
-        public static UIElement ReadImage(FileInfo file)
-        {
-            using (var reader = new StreamReader(file.FullName))
-            {
-                var ui = XamlReader.Load(reader.BaseStream) as FrameworkElement;
-                ui.Tag = file.FullName;
-                return ui;
-            }
+            var ui = XamlReader.Parse(content) as FrameworkElement;
+            return ui;
         }
     }
 }

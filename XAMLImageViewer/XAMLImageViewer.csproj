@@ -72,10 +72,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\XamlFileInfo.cs" />
     <Compile Include="Models\XamlImageProcessor.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Compile Include="Views\Converter\StringToUIElementConverter.cs" />
-    <Compile Include="Views\Converter\XAMLImageContentToUIElementConverter.cs" />
+    <Compile Include="Views\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Views\Converters\StringToUIElementConverter.cs" />
+    <Compile Include="Views\Converters\XamlfoToUi.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

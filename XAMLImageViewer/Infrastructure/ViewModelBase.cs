@@ -19,7 +19,7 @@ namespace XAMLImageViewer
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
             }
-            catch (Exception err)
+            catch // (Exception err)
             {
                // MessageBox.Show(err?.InnerException.Message ?? err.Message, err.Message, MessageBoxButton.OK, MessageBoxImage.Error);
             }

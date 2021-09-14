@@ -12,7 +12,9 @@ using System.Windows.Media;
 using System.Windows.Threading;
 
 using System.Windows.Forms;
-
+using XAMLImageViewer.Models;
+using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace XAMLImageViewer.ViewModels
 {
@@ -20,15 +22,199 @@ namespace XAMLImageViewer.ViewModels
     {
         private readonly XAMLImageViewer.Models.XamlImageProcessor model = new Models.XamlImageProcessor();
 
-        public List<FileInfo> ImagesList { get; set; } = new List<FileInfo>();
-        public double LoadingProgress
+        public ObservableCollection<ListBoxItem> Images { get; set; } = new ObservableCollection<ListBoxItem>();
+
+        public string FilterText
+        {
+            get { return (string)GetValue(FilterTextProperty); }
+            set { SetValue(FilterTextProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FilterText.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FilterTextProperty =
+            DependencyProperty.Register("FilterText", typeof(string), typeof(MainWindowViewModel));
+
+
+        private RelayCommand filterItems;
+        public RelayCommand SearchItems => filterItems ?? (
+            filterItems = new RelayCommand(
+                (p) =>
+                {
+                    //if (string.IsNullOrEmpty(FilterText))
+                    //{
+                    //    var elements = Images.Where(x => x.IsVisible == false).ToArray();
+                    //    for (int i = 0; i < elements.Count(); i++)
+                    //    {
+                    //        elements[i].IsVisible = true;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    var elements = Images.Where(x => !x.Name.Contains(FilterText)).ToArray();
+                    //    for (int i = 0; i < elements.Count(); i++)
+                    //    {
+                    //        elements[i].IsVisible = false;
+                    //    }
+                    //}
+                    OnPropertyChanged("Images");
+                }
+                )
+            );
+
+
+        #region Start loading
+        public double Progress
         {
             get { return (double)GetValue(LoadingProgressProperty); }
             set { SetValue(LoadingProgressProperty, value); }
         }
 
         public static readonly DependencyProperty LoadingProgressProperty =
-            DependencyProperty.Register("LoadingProgress", typeof(double), typeof(MainWindowViewModel));
+            DependencyProperty.Register("Progress", typeof(double), typeof(MainWindowViewModel));
+
+        CancellationTokenSource cts;
+
+        RelayCommand loadingFiles = null;
+        public RelayCommand LoadingFiles => loadingFiles ?? (loadingFiles =
+            new RelayCommand(async (p) =>
+            {
+                var fbd = new FolderBrowserDialog();
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        IsRunLoading = true;
+                        cts = new CancellationTokenSource();
+                        CancellationToken token = cts.Token;
+                        Images.Clear();
+                        await Task.Run(async () =>
+                        {
+                            var progress = new Progress<double>();
+                            progress.ProgressChanged += (s, e) =>
+                            {
+                                App.Current?.Dispatcher?.Invoke(() => { Progress = e; });
+                            };
+                            SelectedFolder = fbd.SelectedPath;
+                            OnPropertyChanged("SelectedFolder");
+                            await Loading(SelectedFolder, progress, token);
+                        });
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //MessageBox.Show("Canceled");
+                    }
+                    catch (Exception ex)
+                    {
+                        //MessageBox.Show(ex.Message);
+                    }
+                    finally
+                    {
+                        Task.Delay(100).Wait();
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            IsRunLoading = false;
+                            OnPropertyChanged("IsEnabledTask");
+                        });
+                    }
+                }
+            },
+                (p) => !IsRunLoading
+        ));
+
+        public bool IsRunLoading
+        {
+            get { return (bool)GetValue(IsEnabledTaskProperty); }
+            set { SetValue(IsEnabledTaskProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsEnabledTaskProperty = DependencyProperty.Register("IsRunLoading", typeof(bool), typeof(MainWindowViewModel));
+
+        RelayCommand cancel = null;
+        public RelayCommand Cancel => cancel ?? (cancel =
+            new RelayCommand((p) =>
+            {
+                cts.Cancel();
+                IsRunLoading = false;
+            },
+                (p) => IsRunLoading
+        ));
+        public async Task Loading(string folder, IProgress<double> progress, CancellationToken token)
+        {
+            progress.Report(0);
+            var files = Directory.GetFiles(folder, "*.xaml", SearchOption.AllDirectories)?.Select(x => new FileInfo(x))?.ToHashSet();
+
+            double percentComplete = 0;
+
+            if (files.Count > 0)
+            {
+                double step = 100.0 / files.Count;
+                double percent = 0.0;
+                var coef = (step * 5) / step;
+                double delta = (step < 1) ? step * coef : step;
+                for (int i = 0; i < files.Count(); i++)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        progress.Report(0);
+                        break;
+                    }
+                    App.Current?.Dispatcher?.Invoke(async () =>
+                    {
+                        Images?.Add(XamlImageProcessor.GetUIElement(new XamlFileInfo(files.ElementAt(i))));                        
+                    }
+                    );
+                    if (step <= delta)
+                    { 
+                        percent += step;
+                        if (percent >= delta)
+                        {
+                            percentComplete++;
+                            percent = 0;
+                        }
+                    }
+                    else { percentComplete += step; }
+                    progress.Report(percentComplete);
+                    Task.Delay(2).Wait();
+                }
+                OnPropertyChanged("Images");
+            }
+            await Task.Delay(100);
+            progress?.Report(0);
+        }
+
+        private void LoadingXamlFiles(string folder)
+        {
+            Images?.Clear();
+            var progress = new Progress<double>();
+            progress.ProgressChanged += (s, a) =>
+            {
+                App.Current.Dispatcher.Invoke(() => { Progress = a; OnPropertyChanged("ImagesList"); });
+
+                if (a == 100)
+                {
+                    OnPropertyChanged("ImagesList");
+                    Progress = 0;
+                }
+            };
+
+            if (Directory.Exists(folder))
+            {
+                LoadFilesAsync(progress, folder);
+            }
+            OnPropertyChanged("ImagesList");
+        }
+
+        private async void LoadFilesAsync(IProgress<double> progress, string folder)
+        {
+            await Task.Run(() =>
+            {
+
+            });
+        }
+        #endregion
+
+
+
 
         #region Theme
         private bool IsWhiteTheme { get; set; } = true;
@@ -45,70 +231,12 @@ namespace XAMLImageViewer.ViewModels
 
         #region Xaml Images Folder
         public string SelectedFolder { get; set; }
-        private RelayCommand openFolder;
-        public RelayCommand OpenFolder => openFolder ?? (
-             openFolder = new RelayCommand((p) =>
-             {
-                 var fbd = new FolderBrowserDialog();
-                 if (fbd.ShowDialog() == DialogResult.OK)
-                 {
-                     SelectedFolder = fbd.SelectedPath;
-                     OnPropertyChanged("SelectedFolder");
-                     LoadingXamlFiles(SelectedFolder);
-                 }
-             }));
 
-        private void LoadingXamlFiles(string folder)
-        {
-            ImagesList?.Clear();
-            var progress = new Progress<double>();
-            progress.ProgressChanged += (s, a) =>
-            {
-                LoadingProgress = a;
-
-                if (a == 100)
-                {
-                    OnPropertyChanged("ImagesList");
-                    LoadingProgress = 0;
-                }
-            };
-
-            if (Directory.Exists(folder))
-            {
-                LoadFilesAsync(progress, folder);
-            }
-            OnPropertyChanged("ImagesList");
-        }
-
-        private async void LoadFilesAsync(IProgress<double> progress, string folder)
-        {
-            await Task.Run(() =>
-            {
-                progress.Report(5);
-                var files = Directory.GetFiles(folder, "*.xaml", SearchOption.AllDirectories)?.Select(x => new FileInfo(x))?.ToList();
-                progress.Report(20);
-                if (files.Count > 0)
-                {
-                    double step = 80 / files.Count;
-                    double counter = 0;
-                    foreach (var file in files)
-                    {
-                        using (var reader = new StreamReader(file.FullName))
-                        {
-                            Dispatcher.CurrentDispatcher.Invoke(() =>
-                            {
-                                ImagesList.Add(file);
-                            });
-                        }
-                        counter += step;
-                        progress.Report(counter);
-                    }
-                    progress.Report(100);
-                }
-            });
-        }
 
         #endregion
+
+
+
 
         private RelayCommand selectedImageChanged;
         public RelayCommand SelectedImageChanged => selectedImageChanged ?? (selectedImageChanged = new RelayCommand(
@@ -126,18 +254,10 @@ namespace XAMLImageViewer.ViewModels
         public RelayCommand CopyResource => copyResource ?? (copyResource = new RelayCommand(
         (parametr) =>
         {
-            List<FileInfo> files = new List<FileInfo>();
+            HashSet<XamlFileInfo> files = new HashSet<XamlFileInfo>();
             if (parametr is ICollection col)
             {
-                files = col.OfType<FrameworkElement>().Select(x =>
-                {
-                    if (x is FrameworkElement elem)
-                    {
-                        return new FileInfo(x.Tag.ToString());
-                    }
-                    return null;
-                }
-                ).OfType<FileInfo>().ToList();
+                files = col.OfType<FrameworkElement>().Select(x => (XamlFileInfo)x.Tag).ToHashSet();
             }
 
             if (files.Count() > 0)
