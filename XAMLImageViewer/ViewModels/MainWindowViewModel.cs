@@ -24,6 +24,7 @@ namespace XAMLImageViewer.ViewModels
 
         public ObservableCollection<ListBoxItem> Images { get; set; } = new ObservableCollection<ListBoxItem>();
 
+        #region Searching
         public string FilterText
         {
             get { return (string)GetValue(FilterTextProperty); }
@@ -32,7 +33,21 @@ namespace XAMLImageViewer.ViewModels
 
         // Using a DependencyProperty as the backing store for FilterText.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FilterTextProperty =
-            DependencyProperty.Register("FilterText", typeof(string), typeof(MainWindowViewModel));
+            DependencyProperty.Register("FilterText", typeof(string), typeof(MainWindowViewModel)
+                , new PropertyMetadata(new PropertyChangedCallback((d, e) =>
+                {
+                    if (d is MainWindowViewModel vm)
+                    {
+                        if (string.IsNullOrEmpty(vm.FilterText))
+                        {
+                            vm.Images.ToList().ForEach(x =>
+                            {
+                                x.SetValue(UIElement.VisibilityProperty, Visibility.Visible);
+                            });
+                        }
+                    }
+                })));
+
 
 
         private RelayCommand filterItems;
@@ -40,29 +55,26 @@ namespace XAMLImageViewer.ViewModels
             filterItems = new RelayCommand(
                 (p) =>
                 {
-                    //if (string.IsNullOrEmpty(FilterText))
-                    //{
-                    //    var elements = Images.Where(x => x.IsVisible == false).ToArray();
-                    //    for (int i = 0; i < elements.Count(); i++)
-                    //    {
-                    //        elements[i].IsVisible = true;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    var elements = Images.Where(x => !x.Name.Contains(FilterText)).ToArray();
-                    //    for (int i = 0; i < elements.Count(); i++)
-                    //    {
-                    //        elements[i].IsVisible = false;
-                    //    }
-                    //}
+                    var images = Images.Where(x => !((XamlFileInfo)x.Tag).Name.ToUpper().Contains(FilterText.ToUpper()));
+                    for (int i = 0; i < images.Count(); i++)
+                    {
+                        images.ElementAt(i).SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
+                    }
+                    images = Images.Where(x => ((XamlFileInfo)x.Tag).Name.ToUpper().Contains(FilterText.ToUpper()));
+                    for (int i = 0; i < images.Count(); i++)
+                    {
+                        images.ElementAt(i).SetValue(UIElement.VisibilityProperty, Visibility.Visible);
+                    }
                     OnPropertyChanged("Images");
                 }
                 )
             );
 
+        #endregion
 
-        #region Start loading
+
+        #region Loading Images
+        private string SelectedFolder;
         public double Progress
         {
             get { return (double)GetValue(LoadingProgressProperty); }
@@ -160,11 +172,11 @@ namespace XAMLImageViewer.ViewModels
                     }
                     App.Current?.Dispatcher?.Invoke(async () =>
                     {
-                        Images?.Add(XamlImageProcessor.GetUIElement(new XamlFileInfo(files.ElementAt(i))));                        
+                        Images?.Add(XamlImageProcessor.GetUIElement(new XamlFileInfo(files.ElementAt(i))));
                     }
                     );
                     if (step <= delta)
-                    { 
+                    {
                         percent += step;
                         if (percent >= delta)
                         {
@@ -214,8 +226,6 @@ namespace XAMLImageViewer.ViewModels
         #endregion
 
 
-
-
         #region Theme
         private bool IsWhiteTheme { get; set; } = true;
         public Brush Theme => (IsWhiteTheme) ? Brushes.White : Brushes.DarkGray;
@@ -229,25 +239,10 @@ namespace XAMLImageViewer.ViewModels
         #endregion
 
 
-        #region Xaml Images Folder
-        public string SelectedFolder { get; set; }
-
-
-        #endregion
+        #region Copy Image
 
 
 
-
-        private RelayCommand selectedImageChanged;
-        public RelayCommand SelectedImageChanged => selectedImageChanged ?? (selectedImageChanged = new RelayCommand(
-        (parametr) =>
-        {
-            if (parametr != null)
-            {
-
-            }
-        }
-        ));
 
 
         private RelayCommand copyResource;
@@ -276,5 +271,6 @@ namespace XAMLImageViewer.ViewModels
             }
         }
         ));
+        #endregion
     }
 }

@@ -14,11 +14,9 @@ namespace XAMLImageViewer.Models
             Name = Path.GetFileNameWithoutExtension(file.Name);
             FullName = file.FullName;
             Content = File.ReadAllText(file.FullName);
-            IsVisible = true;
         }
         public string Name;
         public string FullName;
         public string Content;
-        public bool IsVisible;
     }
 }

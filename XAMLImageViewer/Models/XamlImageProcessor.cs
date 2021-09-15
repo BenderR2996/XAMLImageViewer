@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace XAMLImageViewer.Models
@@ -14,20 +15,19 @@ namespace XAMLImageViewer.Models
     {
         public static ListBoxItem GetUIElement(XamlFileInfo xf)
         {
-            if (xf.IsVisible)
-            {
-                Viewbox vb = new Viewbox() { Height = 16, Width = 16 };
-                var ui = ReadImage(xf.Content);
-                vb.Child = ui;
+            Viewbox vb = new Viewbox() { Height = 16, Width = 16 };
+            var ui = ReadImage(xf.Content);
+            vb.Child = ui;
 
-                StackPanel sp = new StackPanel() { Orientation = System.Windows.Controls.Orientation.Horizontal };
-                sp.Children.Add(vb);
-                sp.Children.Add(new TextBlock() { Text = xf.Name, Margin = new Thickness(5, 0, 0, 0) });
+            StackPanel sp = new StackPanel() { Orientation = System.Windows.Controls.Orientation.Horizontal };
+            sp.Children.Add(vb);
+            sp.Children.Add(new TextBlock() { Text = xf.Name, Margin = new Thickness(5, 0, 0, 0) });
 
-                var item = new ListBoxItem() { Content = sp, Tag = xf };
-                return item;
-            }
-            return null;
+            var item = new ListBoxItem() { Content = sp, Tag = xf };
+            //Binding binding = new Binding() { Path = new PropertyPath(((XamlFileInfo)item.Tag).IsVisible) };
+            //binding.Converter = new XAMLImageViewer.Views.Converters.BoolToVisibilityConverter();
+            //item.SetBinding(UIElement.VisibilityProperty, binding);
+            return item;
         }
 
 

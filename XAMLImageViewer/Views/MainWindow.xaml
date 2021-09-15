@@ -168,15 +168,10 @@
         <Grid Grid.Row="1" Background="{Binding Theme}">
             <Viewbox 
                 Height="{Binding ElementName=sliderScale, Path=Value}" 
-                Width="{Binding ElementName=sliderScale, Path=Value}">
-                <!--<ContentControl 
-                    
-                    Content ="{Binding ElementName=imagesList, Path=SelectedItem.Tag, Converter={StaticResource StringToUIElement}}"/>-->
-
+                Width="{Binding ElementName=sliderScale, Path=Value}">                
                 <ContentControl Width="16" Height="16"
                                 HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                                >
+                    VerticalAlignment="Stretch">
                     <ContentControl.Style>
                         <Style TargetType="ContentControl">
                             <Setter Property="Content" Value="{Binding ElementName=imagesList, Path=SelectedItem.Tag, Converter={StaticResource StringToUIElement}}"/>
@@ -244,19 +239,12 @@
                             </Style.Triggers>
                         </Style>
                     </ContentControl.Style>
-
-
-
                 </ContentControl>
-
-
-
             </Viewbox>
-
         </Grid>
         <!--Элемент поиска-->
         <Border Grid.Row="0" Grid.Column="2" BorderBrush="Black" BorderThickness="1" >
-            <Grid >
+            <Grid Visibility="{Binding IsRunLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter='INVERT'}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="30"/>
@@ -265,7 +253,7 @@
                          TextAlignment="Left" 
                          VerticalAlignment="Stretch" VerticalContentAlignment="Center" 
                          FontSize="16"
-                         Text="{Binding FilterText}"
+                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
                          ></TextBox>
                 <Button Grid.Column="1" Command="{Binding SearchItems}">
                     <Viewbox Width="16" Height="16">
