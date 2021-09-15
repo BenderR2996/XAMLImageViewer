@@ -31,40 +31,75 @@ namespace XAMLImageViewer.ViewModels
             set { SetValue(FilterTextProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for FilterText.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FilterTextProperty =
             DependencyProperty.Register("FilterText", typeof(string), typeof(MainWindowViewModel)
                 , new PropertyMetadata(new PropertyChangedCallback((d, e) =>
                 {
                     if (d is MainWindowViewModel vm)
                     {
+                        IEnumerable<ListBoxItem> images = null;
+                        ChangeVisibility setVisibility = vm.SetVisibility;
+
                         if (string.IsNullOrEmpty(vm.FilterText))
                         {
-                            vm.Images.ToList().ForEach(x =>
-                            {
-                                x.SetValue(UIElement.VisibilityProperty, Visibility.Visible);
-                            });
+                            images = vm.Images;
+                            App.Current.Dispatcher.BeginInvoke(
+                                setVisibility,
+                                DispatcherPriority.Input,
+                                vm.Images, Visibility.Visible
+                            );
+                        }
+                        else
+                        {
+                            images = vm.Images.Where(x => !((XamlFileInfo)x.Tag).Name.ToUpper().Contains(vm.FilterText.ToUpper()));
+                            App.Current.Dispatcher.BeginInvoke(
+                                setVisibility,
+                                DispatcherPriority.Input,
+                                images, Visibility.Collapsed
+                            );
+                            images = vm.Images.Where(x => ((XamlFileInfo)x.Tag).Name.ToUpper().Contains(vm.FilterText.ToUpper()));
+                            App.Current.Dispatcher.BeginInvoke(
+                                setVisibility,
+                                DispatcherPriority.Normal,
+                                images, Visibility.Visible
+                            );
                         }
                     }
                 })));
 
-
-
         private RelayCommand filterItems;
+
+        public delegate void ChangeVisibility(IEnumerable<ListBoxItem> items, Visibility visibility);
+
+        private void SetVisibility(IEnumerable<ListBoxItem> images, Visibility visibility)
+        { images.ToList().ForEach(x => x.SetValue(UIElement.VisibilityProperty, visibility)); }
+
         public RelayCommand SearchItems => filterItems ?? (
             filterItems = new RelayCommand(
                 (p) =>
                 {
-                    var images = Images.Where(x => !((XamlFileInfo)x.Tag).Name.ToUpper().Contains(FilterText.ToUpper()));
-                    for (int i = 0; i < images.Count(); i++)
-                    {
-                        images.ElementAt(i).SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
-                    }
+                    IEnumerable<ListBoxItem> images = null;
+
+                    images = Images.Where(x => !((XamlFileInfo)x.Tag).Name.ToUpper().Contains(FilterText.ToUpper()));
+                    ChangeVisibility setVisibility = SetVisibility;
+
+                    App.Current.Dispatcher.BeginInvoke(
+                        setVisibility,
+                        DispatcherPriority.Normal,
+                        images, Visibility.Collapsed
+                        )
+                    ;
+
                     images = Images.Where(x => ((XamlFileInfo)x.Tag).Name.ToUpper().Contains(FilterText.ToUpper()));
-                    for (int i = 0; i < images.Count(); i++)
-                    {
-                        images.ElementAt(i).SetValue(UIElement.VisibilityProperty, Visibility.Visible);
-                    }
+
+                    App.Current.Dispatcher.BeginInvoke(
+                        setVisibility,
+                        DispatcherPriority.Normal,
+                        images, Visibility.Visible
+                        )
+                    ;
+
+
                     OnPropertyChanged("Images");
                 }
                 )
@@ -139,7 +174,18 @@ namespace XAMLImageViewer.ViewModels
             set { SetValue(IsEnabledTaskProperty, value); }
         }
 
-        public static readonly DependencyProperty IsEnabledTaskProperty = DependencyProperty.Register("IsRunLoading", typeof(bool), typeof(MainWindowViewModel));
+        public static readonly DependencyProperty IsEnabledTaskProperty = DependencyProperty.Register("IsRunLoading", typeof(bool), typeof(MainWindowViewModel)
+            , new PropertyMetadata(new PropertyChangedCallback((d, e) =>
+            {
+                if (d is MainWindowViewModel vm)
+                {
+                    if (!vm.IsRunLoading)
+                    {
+                        vm.LoadingInfo = vm.SelectedFolder;
+                    }
+                }
+            })));
+
 
         RelayCommand cancel = null;
         public RelayCommand Cancel => cancel ?? (cancel =
@@ -150,6 +196,18 @@ namespace XAMLImageViewer.ViewModels
             },
                 (p) => IsRunLoading
         ));
+
+        public string LoadingInfo
+        {
+            get { return (string)GetValue(LoadingInfoProperty); }
+            set { SetValue(LoadingInfoProperty, value); }
+        }
+
+        public static readonly DependencyProperty LoadingInfoProperty =
+            DependencyProperty.Register("LoadingInfo", typeof(string), typeof(MainWindowViewModel));
+
+
+
         public async Task Loading(string folder, IProgress<double> progress, CancellationToken token)
         {
             progress.Report(0);
@@ -159,10 +217,8 @@ namespace XAMLImageViewer.ViewModels
 
             if (files.Count > 0)
             {
-                double step = 100.0 / files.Count;
-                double percent = 0.0;
-                var coef = (step * 5) / step;
-                double delta = (step < 1) ? step * coef : step;
+                double count = files.Count;
+
                 for (int i = 0; i < files.Count(); i++)
                 {
                     if (token.IsCancellationRequested)
@@ -173,20 +229,12 @@ namespace XAMLImageViewer.ViewModels
                     App.Current?.Dispatcher?.Invoke(async () =>
                     {
                         Images?.Add(XamlImageProcessor.GetUIElement(new XamlFileInfo(files.ElementAt(i))));
+                        LoadingInfo = string.Format("{0:0.0} %", percentComplete); //{Images.Count}/{count}
                     }
                     );
-                    if (step <= delta)
-                    {
-                        percent += step;
-                        if (percent >= delta)
-                        {
-                            percentComplete++;
-                            percent = 0;
-                        }
-                    }
-                    else { percentComplete += step; }
+                    percentComplete = Images.Count * 100 / count;
                     progress.Report(percentComplete);
-                    Task.Delay(2).Wait();
+                    Task.Delay(1).Wait();
                 }
                 OnPropertyChanged("Images");
             }
@@ -194,35 +242,7 @@ namespace XAMLImageViewer.ViewModels
             progress?.Report(0);
         }
 
-        private void LoadingXamlFiles(string folder)
-        {
-            Images?.Clear();
-            var progress = new Progress<double>();
-            progress.ProgressChanged += (s, a) =>
-            {
-                App.Current.Dispatcher.Invoke(() => { Progress = a; OnPropertyChanged("ImagesList"); });
 
-                if (a == 100)
-                {
-                    OnPropertyChanged("ImagesList");
-                    Progress = 0;
-                }
-            };
-
-            if (Directory.Exists(folder))
-            {
-                LoadFilesAsync(progress, folder);
-            }
-            OnPropertyChanged("ImagesList");
-        }
-
-        private async void LoadFilesAsync(IProgress<double> progress, string folder)
-        {
-            await Task.Run(() =>
-            {
-
-            });
-        }
         #endregion
 
 

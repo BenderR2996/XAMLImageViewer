@@ -10,14 +10,18 @@
         mc:Ignorable="d"
         DataContext="{DynamicResource ViewModel}"
         WindowStartupLocation="CenterScreen"
-        Title="XAML Image Viewer" 
+        
         MinHeight="450" MinWidth="800"
-        Height="450" Width="800">
+        Height="450" Width="800"
+ Title="XAML Image Viewer"
+        >
+    <!---->
     <Window.Resources>
         <vm:MainWindowViewModel x:Key="ViewModel"/>
         <!--<c:XamlfoToUi x:Key="XamlImageToViewBox"/>-->
         <c:StringToUIElementConverter x:Key="StringToUIElement"/>
         <c:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <c:InverseBooleanConverter x:Key="InvertBoolean"/>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -74,9 +78,24 @@
                    >
                 </ProgressBar>
                 <TextBlock Grid.Row="1" Padding="5" 
-                           
                            Grid.Column="1"
-                           Text="{Binding SelectedFolder}" FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                            FontSize="14" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                           Text="{Binding LoadingInfo}" 
+                           >
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsRunLoading}" Value="True">
+                                    <Setter Property="TextAlignment" Value="Center" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=IsRunLoading}" Value="False">
+                                    <Setter Property="TextAlignment" Value="Left" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <Button Grid.Column="2" Command="{Binding Cancel}"
                         Margin="1,0,0,0"
                         Padding="0"
@@ -164,11 +183,12 @@
                 </Viewbox>
             </Button>
         </Grid>
+
         <!--Основной элемент отображения-->
         <Grid Grid.Row="1" Background="{Binding Theme}">
             <Viewbox 
                 Height="{Binding ElementName=sliderScale, Path=Value}" 
-                Width="{Binding ElementName=sliderScale, Path=Value}">                
+                Width="{Binding ElementName=sliderScale, Path=Value}">
                 <ContentControl Width="16" Height="16"
                                 HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">
@@ -215,17 +235,14 @@
 
                                                     </Rectangle.Fill>
                                                     <Rectangle.RenderTransform>
-                                                        <!-- giving the transform a name tells the framework not to freeze it -->
-                                                        <RotateTransform x:Name="noFreeze" 
-                                             CenterX="8" CenterY="8"/>
+                                                        <RotateTransform x:Name="noFreeze" CenterX="8" CenterY="8"/>
                                                     </Rectangle.RenderTransform>
                                                     <Rectangle.Triggers>
                                                         <EventTrigger RoutedEvent="Loaded">
                                                             <BeginStoryboard>
                                                                 <Storyboard>
-                                                                    <DoubleAnimation
-            Storyboard.TargetProperty="(Rectangle.RenderTransform).(RotateTransform.Angle)"
-            To="360" Duration="0:0:10" RepeatBehavior="Forever" />
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(Rectangle.RenderTransform).(RotateTransform.Angle)" 
+                                                                                     To="360" Duration="0:0:5" RepeatBehavior="Forever" />
                                                                 </Storyboard>
                                                             </BeginStoryboard>
                                                         </EventTrigger>
@@ -250,12 +267,16 @@
                     <ColumnDefinition Width="30"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" 
+                         Grid.ColumnSpan="2"
                          TextAlignment="Left" 
                          VerticalAlignment="Stretch" VerticalContentAlignment="Center" 
                          FontSize="16"
-                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                         ></TextBox>
-                <Button Grid.Column="1" Command="{Binding SearchItems}">
+                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged, Delay=500}"
+                        
+                         >
+
+                </TextBox>
+                <Button Grid.Column="1" Command="{Binding SearchItems}" Visibility="Collapsed">
                     <Viewbox Width="16" Height="16">
                         <Rectangle Width="16" Height="16">
                             <Rectangle.Fill>
@@ -286,8 +307,8 @@
                 VerticalAlignment="Stretch" 
                 Command="{Binding CopyResource}"
                 CommandParameter="{Binding ElementName=imagesList, Path=SelectedItems}"
+                Visibility="{Binding IsRunLoading, Converter={StaticResource BoolToVisibility}, ConverterParameter='INVERT'}"
                 >
-
         </Button>
     </Grid>
 </Window>
