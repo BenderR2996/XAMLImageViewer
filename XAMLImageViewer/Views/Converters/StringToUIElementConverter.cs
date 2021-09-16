@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Windows.Data;
 using System.Globalization;
-using System.Windows.Markup;
-using System.IO;
-using System.Windows;
-using System.Text;
+using System.Windows.Data;
 using XAMLImageViewer.Models;
 
 namespace XAMLImageViewer.Views.Converters

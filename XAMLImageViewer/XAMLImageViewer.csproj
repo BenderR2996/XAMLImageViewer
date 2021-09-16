@@ -76,8 +76,8 @@
     <Compile Include="Models\XamlImageProcessor.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Views\Converters\InverseBooleanConverter.cs" />
     <Compile Include="Views\Converters\StringToUIElementConverter.cs" />
-    <Compile Include="Views\Converters\XamlfoToUi.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

@@ -18,10 +18,150 @@
     <!---->
     <Window.Resources>
         <vm:MainWindowViewModel x:Key="ViewModel"/>
-        <!--<c:XamlfoToUi x:Key="XamlImageToViewBox"/>-->
-        <c:StringToUIElementConverter x:Key="StringToUIElement"/>
         <c:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <c:InverseBooleanConverter x:Key="InvertBoolean"/>
+
+        <Style x:Key="SliderThumbStyle" TargetType="Thumb">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="false"/>
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Viewbox Width="18" Height="18" VerticalAlignment="Center" x:Name="thumbViewBox" >
+                            <Rectangle Width="16" Height="16" x:Name="thumb" >
+                                <Rectangle.Fill>
+                                    <DrawingBrush>
+                                        <DrawingBrush.Drawing>
+                                            <DrawingGroup>
+                                                <DrawingGroup.Children>
+                                                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                                                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.859,1 15,4.14 15,8 15,11.859 11.859,15 8,15" />
+                                                    <GeometryDrawing Brush="#FF424242" Geometry="F1M10,8C10,9.105 9.105,10 8,10 6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 M8,12C5.791,12 4,10.209 4,8 4,5.791 5.791,4 8,4 10.209,4 12,5.791 12,8 12,10.209 10.209,12 8,12 M8,2C4.688,2 2,4.687 2,8 2,11.313 4.688,14 8,14 11.312,14 14,11.313 14,8 14,4.687 11.312,2 8,2" />
+                                                    <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M8,10C6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 10,9.105 9.105,10 8,10 M8,4C5.791,4 4,5.791 4,8 4,10.209 5.791,12 8,12 10.209,12 12,10.209 12,8 12,5.791 10.209,4 8,4" />
+                                                </DrawingGroup.Children>
+                                            </DrawingGroup>
+                                        </DrawingBrush.Drawing>
+                                    </DrawingBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Viewbox>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="thumb" Property="Fill">
+                                    <Setter.Value>
+                                        <DrawingBrush>
+                                            <DrawingBrush.Drawing>
+                                                <DrawingGroup>
+                                                    <DrawingGroup.Children>
+                                                        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                                                        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.859,1 15,4.14 15,8 15,11.859 11.859,15 8,15" />
+                                                        <GeometryDrawing Brush="#FF458AC8" Geometry="F1M10,8C10,9.105 9.105,10 8,10 6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 M8,12C5.791,12 4,10.209 4,8 4,5.791 5.791,4 8,4 10.209,4 12,5.791 12,8 12,10.209 10.209,12 8,12 M8,2C4.688,2 2,4.687 2,8 2,11.313 4.688,14 8,14 11.312,14 14,11.313 14,8 14,4.687 11.312,2 8,2" />
+                                                        <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M8,10C6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 10,9.105 9.105,10 8,10 M8,4C5.791,4 4,5.791 4,8 4,10.209 5.791,12 8,12 10.209,12 12,10.209 12,8 12,5.791 10.209,4 8,4" />
+                                                    </DrawingGroup.Children>
+                                                </DrawingGroup>
+                                            </DrawingBrush.Drawing>
+                                        </DrawingBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="thumbViewBox"  Property="Height" Value="22" />
+                                <Setter TargetName="thumbViewBox"  Property="Width" Value="22"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter TargetName="thumb" Property="Fill" >
+                                    <Setter.Value>
+                                        <DrawingBrush>
+                                            <DrawingBrush.Drawing>
+                                                <DrawingGroup>
+                                                    <DrawingGroup.Children>
+                                                        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                                                        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.859,1 15,4.14 15,8 15,11.859 11.859,15 8,15" />
+                                                        <GeometryDrawing Brush="#FF424242" Geometry="F1M10,8C10,9.105 9.105,10 8,10 6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 M8,12C5.791,12 4,10.209 4,8 4,5.791 5.791,4 8,4 10.209,4 12,5.791 12,8 12,10.209 10.209,12 8,12 M8,2C4.688,2 2,4.687 2,8 2,11.313 4.688,14 8,14 11.312,14 14,11.313 14,8 14,4.687 11.312,2 8,2" />
+                                                        <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M8,10C6.895,10 6,9.105 6,8 6,6.895 6.895,6 8,6 9.105,6 10,6.895 10,8 10,9.105 9.105,10 8,10 M8,4C5.791,4 4,5.791 4,8 4,10.209 5.791,12 8,12 10.209,12 12,10.209 12,8 12,5.791 10.209,4 8,4" />
+                                                    </DrawingGroup.Children>
+                                                </DrawingGroup>
+                                            </DrawingBrush.Drawing>
+                                        </DrawingBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="thumbViewBox"  Property="Height" Value="18" />
+                                <Setter TargetName="thumbViewBox"  Property="Width" Value="18"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="ThemeButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button" x:Name="themeViewBox">
+                        <Viewbox Width="20" Height="20" >
+                            <Rectangle Width="16" Height="16" >
+                                <Rectangle.Fill>
+                                    <DrawingBrush>
+                                        <DrawingBrush.Drawing>
+                                            <DrawingGroup>
+                                                <DrawingGroup.Children>
+                                                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                                                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.582,0 0,3.582 0,8 0,12.418 3.582,16 8,16 12.418,16 16,12.418 16,8 16,3.582 12.418,0 8,0" />
+                                                    <GeometryDrawing Brush="#FF414141" Geometry="F1M8,14L8,2C11.313,2 14,4.687 14,8 14,11.313 11.313,14 8,14 M8,1C4.134,1 1,4.134 1,8 1,11.866 4.134,15 8,15 11.866,15 15,11.866 15,8 15,4.134 11.866,1 8,1" />
+                                                    <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
+                                                </DrawingGroup.Children>
+                                            </DrawingGroup>
+                                        </DrawingBrush.Drawing>
+                                    </DrawingBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Viewbox>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Slider" x:Key="AppSliderStyle">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" Name="row" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="*" Name="column" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Name="PART_Border"
+                           BorderBrush="LightGray" BorderThickness=".5"
+                           Padding="1"
+                           Grid.Row="1" Grid.Column="1"
+                           Width="{TemplateBinding Width}"
+                           Height="{TemplateBinding Height}"
+                           Background="White"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Center" />
+                            <Track Name="PART_Track"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              Grid.Row="1" Grid.Column="1"
+                              Width="{TemplateBinding Width}"
+                              Height="{TemplateBinding Height}">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumbStyle}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -156,32 +296,27 @@
                 VerticalAlignment="Center" 
                 Margin="20,0"                    
                 Minimum="10" 
-                Value="200"
-                
+                Value="192"
+                Style="{StaticResource AppSliderStyle}"
                 Maximum="{Binding ElementName=imagesList, Path=ActualHeight}"
                 Grid.Column="2" Height="18" SmallChange="1" 
                 />
-
-            <Button Command="{Binding ChangeTheme}" Grid.Column="1" Margin="2">
-                <Viewbox Width="16" Height="16">
-                    <Rectangle Width="16" Height="16">
-                        <Rectangle.Fill>
-                            <DrawingBrush>
-                                <DrawingBrush.Drawing>
-                                    <DrawingGroup>
-                                        <DrawingGroup.Children>
-                                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.582,0 0,3.582 0,8 0,12.418 3.582,16 8,16 12.418,16 16,12.418 16,8 16,3.582 12.418,0 8,0" />
-                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M8,14L8,2C11.313,2 14,4.687 14,8 14,11.313 11.313,14 8,14 M8,1C4.134,1 1,4.134 1,8 1,11.866 4.134,15 8,15 11.866,15 15,11.866 15,8 15,4.134 11.866,1 8,1" />
-                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
-                                        </DrawingGroup.Children>
-                                    </DrawingGroup>
-                                </DrawingBrush.Drawing>
-                            </DrawingBrush>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Viewbox>
-            </Button>
+            <Border Grid.Column="1" Margin="2" CornerRadius="5" BorderThickness=".7" BorderBrush="Black" >
+                <Button Command="{Binding ChangeTheme}" x:Name="themeBtn" Style="{StaticResource ThemeButtonStyle}" >
+                </Button>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsWhiteTheme}" Value="True">
+                                <Setter Property="Background" Value="#FF414141" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsWhiteTheme}" Value="True">
+                                <Setter Property="Background" Value="White" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
         </Grid>
 
         <!--Основной элемент отображения-->

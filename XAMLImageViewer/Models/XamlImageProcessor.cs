@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace XAMLImageViewer.Models
@@ -24,9 +19,7 @@ namespace XAMLImageViewer.Models
             sp.Children.Add(new TextBlock() { Text = xf.Name, Margin = new Thickness(5, 0, 0, 0) });
 
             var item = new ListBoxItem() { Content = sp, Tag = xf };
-            //Binding binding = new Binding() { Path = new PropertyPath(((XamlFileInfo)item.Tag).IsVisible) };
-            //binding.Converter = new XAMLImageViewer.Views.Converters.BoolToVisibilityConverter();
-            //item.SetBinding(UIElement.VisibilityProperty, binding);
+
             return item;
         }
 
@@ -38,8 +31,6 @@ namespace XAMLImageViewer.Models
             text = text.Replace("xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"", $"x:Key=\"{xf.Name}\"");
             return text;
         }
-
-
 
         public string GetResourceDictionary(IEnumerable<XamlFileInfo> files, string @namespace = "MyResourceDictionary")
             => GetResourceDictionary(files.Select(x => GetXamlElement(x)), @namespace);
