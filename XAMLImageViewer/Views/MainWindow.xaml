@@ -20,7 +20,7 @@
         <vm:MainWindowViewModel x:Key="ViewModel"/>
         <c:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <c:InverseBooleanConverter x:Key="InvertBoolean"/>
-
+        <c:StringToUIElementConverter x:Key="StringToUIElement" />
         <Style x:Key="SliderThumbStyle" TargetType="Thumb">
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="OverridesDefaultStyle" Value="false"/>
