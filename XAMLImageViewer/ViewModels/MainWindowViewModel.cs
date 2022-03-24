@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using XAMLImageViewer.Models;
@@ -268,9 +269,7 @@ namespace XAMLImageViewer.ViewModels
         {
             HashSet<XamlFileInfo> files = new HashSet<XamlFileInfo>();
             if (parametr is ICollection col)
-            {
                 files = col.OfType<FrameworkElement>().Select(x => (XamlFileInfo)x.Tag).ToHashSet();
-            }
 
             if (files.Count() > 0)
             {
